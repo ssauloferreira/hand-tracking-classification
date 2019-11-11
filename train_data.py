@@ -25,12 +25,12 @@ epochs = 5
 headcascade = cv2.CascadeClassifier('face.xml')
 backSub = cv2.createBackgroundSubtractorKNN(history=500, dist2Threshold=30)
 kernel = np.ones((wsize_open, wsize_open), np.uint8)
-descriptor = 'hu'
-to_train = True
+descriptor = 'fourier'
+to_train = False
 
 
 def efd_feature(contour):
-    coeffs = efd(contour, order=10, normalize=True)
+    coeffs = efd(np.squeeze(contour), order=10, normalize=True)
     return coeffs.flatten()[3:]
 
 
@@ -43,11 +43,11 @@ data_test = []
 labels_test = []
 
 if not data:
-    for dir in ['A', 'B', 'C', 'Five', 'Point', 'V']:
+    for dir in sample:
         count = 0
         label = dir
-        for filepath in glob('Database/'+dir+'/**'):
-            print(filepath)
+        print(dir)
+        for filepath in glob('Database/sample/'+dir+'/**'):
             original = cv2.imread(filepath, -1)
 
             preprocessed = modules.camera_module(source=original.copy())
@@ -59,10 +59,11 @@ if not data:
 
             elif descriptor == "hog":
                 hog_features = hog(images[0], orientations=8,
-                                pixels_per_cell=(8, 8),
-                                cells_per_block=(10, 10),
-                                feature_vector=True)
+                                   pixels_per_cell=(8, 8),
+                                   cells_per_block=(10, 10),
+                                   feature_vector=True)
                 data.append(hog_features)
+                print(hog_features)
 
             elif descriptor == "fourier":
                 data.append(efd_feature(cnt))
