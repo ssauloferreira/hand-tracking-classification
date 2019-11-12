@@ -1,6 +1,7 @@
 # Commented out IPython magic to ensure Python compatibility.
 import cv2
 import numpy as np
+from math import copysign, log10
 
 import modules
 from skimage.feature import hog
@@ -25,8 +26,8 @@ epochs = 5
 headcascade = cv2.CascadeClassifier('face.xml')
 backSub = cv2.createBackgroundSubtractorKNN(history=500, dist2Threshold=30)
 kernel = np.ones((wsize_open, wsize_open), np.uint8)
-descriptor = 'fourier'
-to_train = False
+descriptor = 'hu'
+to_train = True
 
 
 def efd_feature(contour):
@@ -53,9 +54,13 @@ if not data:
             preprocessed = modules.camera_module(source=original.copy())
             images, cnt, approx = modules.detection_module(source=preprocessed)
 
-            """Descrição de imagem"""
+            """Descricao de imagem"""
             if descriptor == "hu":
-                pass
+                M = cv2.moments(images[0])
+                huMoments = cv2.HuMoments(M).flatten()
+                for i in range(0,7):
+                    huMoments[i] = -1* copysign(1.0, huMoments[i]) * log10(abs(huMoments[i]))
+                data.append(huMoments)
 
             elif descriptor == "hog":
                 hog_features = hog(images[0], orientations=8,
