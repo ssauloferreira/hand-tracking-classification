@@ -9,7 +9,7 @@ wsize_gaussian = 13
 
 y_min = 54
 y_max = 137
-crmin = 135
+crmin = 147
 crmax = 174
 cbmin = 80
 cbmax = 125
@@ -28,20 +28,21 @@ def nothing(pos):
     pass
 
 
-source = cv2.imread('Database/marcel/Five/Five-train001.ppm', -1)
+source = cv2.imread('Database/hgr1/5_P_hgr1_id01_1.jpg', -1)
+
+cv2.namedWindow('YRB_calib')
+cv2.createTrackbar('Ymin', 'YRB_calib', 54, 255, nothing)
+cv2.createTrackbar('Ymax', 'YRB_calib', 137, 255, nothing)
+cv2.createTrackbar('CRmin', 'YRB_calib', 135, 255, nothing)
+cv2.createTrackbar('CRmax', 'YRB_calib', 174, 255, nothing)
+cv2.createTrackbar('CBmin', 'YRB_calib', 0, 255, nothing)
+cv2.createTrackbar('CBmax', 'YRB_calib', 125, 255, nothing)
+cv2.namedWindow('Windows sizes')
+cv2.createTrackbar('OpenSize', 'Windows sizes', 3, 10, nothing)
+cv2.createTrackbar('Gaussian', 'Windows sizes', 5, 30, nothing)
+cv2.createTrackbar('Connected', 'Windows sizes', 150, 500, nothing)
 
 while True:
-    cv2.namedWindow('YRB_calib')
-    cv2.createTrackbar('Ymin', 'YRB_calib', 54, 255, nothing)
-    cv2.createTrackbar('Ymax', 'YRB_calib', 137, 255, nothing)
-    cv2.createTrackbar('CRmin', 'YRB_calib', 135, 255, nothing)
-    cv2.createTrackbar('CRmax', 'YRB_calib', 174, 255, nothing)
-    cv2.createTrackbar('CBmin', 'YRB_calib', 0, 255, nothing)
-    cv2.createTrackbar('CBmax', 'YRB_calib', 125, 255, nothing)
-    cv2.namedWindow('Windows sizes')
-    cv2.createTrackbar('OpenSize', 'Windows sizes', 3, 10, nothing)
-    cv2.createTrackbar('Gaussian', 'Windows sizes', 5, 30, nothing)
-    cv2.createTrackbar('Connected', 'Windows sizes', 150, 500, nothing)
 
     ymin = cv2.getTrackbarPos('Ymin', 'YRB_calib')
     ymax = cv2.getTrackbarPos('Ymax', 'YRB_calib')
@@ -88,9 +89,9 @@ while True:
 
     """### Eliminação de ruídos e face"""
 
-    mask = backSub.apply(image)
-    img4 = cv2.bitwise_and(mask, img3)
-    img5 = cv2.medianBlur(img4, wsize_gaussian)
+    # mask = backSub.apply(image)
+    # img4 = cv2.bitwise_and(mask, img3)
+    img5 = cv2.medianBlur(img3, wsize_gaussian)
     img5 = cv2.morphologyEx(img5, cv2.MORPH_OPEN, kernel)
 
     marge = 30
@@ -98,5 +99,6 @@ while True:
         cv2.rectangle(img5, (x - marge, y - h + marge),
                       (x + marge + w, y + marge + h), (0, 0, 0), -1)
 
-    cv2.imshow("", img5)
-    cv2.imshow("", cr)
+    cv2.imshow("A", img5)
+    # cv2.imshow("B", cr)
+    cv2.waitKey(1)

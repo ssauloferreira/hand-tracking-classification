@@ -3,17 +3,23 @@ import numpy as np
 from keras import Sequential
 from keras.layers import Dropout, Dense, Activation
 from scipy.spatial import distance
-from sklearn.decomposition import PCA
 
-wsize_open = 13
-wsize_gaussian = 13
+wsize_open = 15
+wsize_gaussian = 15
 
-y_min = 54
+y_min = 0
 y_max = 137
-crmin = 135
+crmin = 139
 crmax = 174
-cbmin = 80
+cbmin = 0
 cbmax = 125
+
+# y_min = 4
+# y_max = 137
+# crmin = 147
+# crmax = 186
+# cbmin = 0
+# cbmax = 125
 
 headcascade = cv2.CascadeClassifier('face.xml')
 backSub = cv2.createBackgroundSubtractorKNN(history=500, dist2Threshold=30)
@@ -27,10 +33,11 @@ def signature(center, points):
         dist = distance.euclidean(cnt[0][0], center)
         description.append(dist)
 
-    pca = PCA(n_components=50)
-    result = pca.fit_transform(description)
+    description.sort(reverse=True)
+    description = description[:50]
+    # print(description)
 
-    return result
+    return description
 
 
 def camera_module(source):
@@ -68,9 +75,9 @@ def camera_module(source):
 
     """### Eliminação de ruídos e face"""
 
-    mask = backSub.apply(image)
-    img4 = cv2.bitwise_and(mask, img3)
-    img5 = cv2.medianBlur(img4, wsize_gaussian)
+    # mask = backSub.apply(image)
+    # img4 = cv2.bitwise_and(mask, img3)
+    img5 = cv2.medianBlur(img3, wsize_gaussian)
     img5 = cv2.morphologyEx(img5, cv2.MORPH_OPEN, kernel)
 
     marge = 30
@@ -88,6 +95,8 @@ def detection_module(source):
     boundbox = cv2.cvtColor(boundbox, cv2.COLOR_GRAY2BGR)
     binary = source.copy()
     hand_only = None
+    cnt = None
+    approx = None
 
     contours, _ = cv2.findContours(binary, 1, 2)
 
@@ -105,11 +114,16 @@ def detection_module(source):
         hull = cv2.convexHull(approx)
         x, y, w, h = cv2.boundingRect(hull)
 
+        # x = x-10 if x > 10 else x
+        # y = y-10 if y > 10 else y
+        # w = w+10 if w < segment.shape[0] - 10 else w
+        # h = h+10 if h < segment.shape[1] - 10 else h
+
         hand_only = binary[y:y + h, x:x + w]
         cv2.drawContours(segment, [approx], -1, (0, 0, 255), 5)
         cv2.rectangle(boundbox, (x, y), (x + w, y + h), (255, 0, 0),  5)
 
-        return (hand_only, segment, boundbox), cnt, approx
+    return (hand_only, segment, boundbox), cnt, approx
 
 
 def mlp(input_shape, num_layers=1000):
